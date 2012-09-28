@@ -1,10 +1,10 @@
 Use this gem to simplify your functional tests:
 
 <pre><code>
-class FooControllerTest < ActionController::TestCase
+class FooControllerTest &lt; ActionController::TestCase
   def self.editable_attributes
     {
-      name: ->(asset){ Faker::Lorem.words.last }
+      name: -&gt;(asset){ Faker::Lorem.words.last }
     }
   end
 
