@@ -9,7 +9,7 @@ Use this gem to simplify your functional tests:
         }
       end
 
-      prepare_region = Proc.new do
+      prepare_stuff = Proc.new do
         @bar = Bar.new
         @asset = Foo.new(name: "Babar", bar: bar)
         @extra_url_params = {parent_id: @bar.slug} 
