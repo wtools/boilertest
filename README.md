@@ -36,4 +36,4 @@ class FooControllerTest < ActionController::TestCase
     setup: prepare_stuff
   }
 end
-</pre>/<code>
+</code></pre>
