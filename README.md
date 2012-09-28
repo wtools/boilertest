@@ -40,4 +40,4 @@ Use this gem to simplify your functional tests:
   </code>
 </pre>
 
-TODO: write test '>_<
+<strong>TODO</strong>: write tests '>_<
