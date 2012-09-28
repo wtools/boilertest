@@ -1,5 +1,6 @@
 Use this gem to simplify your functional tests:
 
+<pre><code>
 class FooControllerTest < ActionController::TestCase
   def self.editable_attributes
     {
@@ -35,3 +36,4 @@ class FooControllerTest < ActionController::TestCase
     setup: prepare_stuff
   }
 end
+</pre>/<code>
