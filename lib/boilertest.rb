@@ -13,7 +13,7 @@ module Boilertest
     include FixtureFile
     include Devise::TestHelpers
     include FactoryGirl::Syntax::Methods
-    
+
     class << self
       def should_perform_action action, model, opts, &block
         should_fail = %w(unauthorized unprocessable_entity).include?(opts[action].to_s)
@@ -69,29 +69,34 @@ module Boilertest
         custom_setup = opts.delete(:setup)
         editable_attributes = opts.delete(:editable_attributes)
 
-        prepare_setup = Proc.new do
-          if custom_setup
+        prepare_setup = Proc.new do |action|
+          if custom_setup && custom_setup.instance_of? Hash
+            custom_setup = custom_setup[action]
+          end
+
+          if custom_setup && custom_setup.instance_of? Proc
             setup &custom_setup
           end
+
           setup do
             @extra_url_params ||= {}
             @asset ||= create(model)
           end
         end
 
-        %w(index new).each do |action|
+        [:index, :new].each do |action|
           next unless responses.key?(action.intern)
           context "GET on :#{action}" do
-            prepare_setup.call
+            prepare_setup.call action
             setup { get action.intern, @extra_url_params }
             should respond_with responses[action.intern]
           end
         end
 
-        %w(show edit).each do |action|
+        [:show, :edit].each do |action|
           next unless responses.key?(action.intern)
           context "GET on :#{action}" do
-            prepare_setup.call
+            prepare_setup.call action
             setup do
               get action.intern, {id: @asset.to_param}.update(@extra_url_params)
             end
@@ -101,7 +106,7 @@ module Boilertest
 
         if responses.key?(:create)
           context 'POST on :create' do
-            prepare_setup.call
+            prepare_setup.call :create
             should_perform_action :create, model, responses do
               assert_difference "#{model.to_s.classify}.count", @count do
                 post :create, {model => self.class.params_for(model)}.update(@extra_url_params)
@@ -116,7 +121,7 @@ module Boilertest
 
         if responses.key?(:update)
           context 'PUT on :update' do
-            prepare_setup.call
+            prepare_setup.call :update
             setup do
               @modified_values = self.class.modify_values(@asset, editable_attributes)
               put :update, {id: @asset.to_param, model => @modified_values}.update(@extra_url_params)
