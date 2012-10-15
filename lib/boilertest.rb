@@ -70,25 +70,25 @@ module Boilertest
         editable_attributes = opts.delete(:editable_attributes)
 
         prepare_setup = Proc.new do |action|
-          if custom_setup && custom_setup.instance_of? Hash
+          if custom_setup && custom_setup.instance_of?(Hash)
             custom_setup = custom_setup[action]
           end
 
-          if custom_setup && custom_setup.instance_of? Proc
-            setup &custom_setup
+          if custom_setup && custom_setup.instance_of?(Proc)
+            instance_exec(action, &custom_setup)
           end
 
-          setup do
-            @extra_url_params ||= {}
-            @asset ||= create(model)
-          end
+          @extra_url_params ||= {}
+          @asset ||= create(model)
         end
 
         [:index, :new].each do |action|
           next unless responses.key?(action.intern)
           context "GET on :#{action}" do
-            prepare_setup.call action
-            setup { get action.intern, @extra_url_params }
+            setup do
+              instance_exec(action, &prepare_setup)
+              get action.intern, @extra_url_params
+            end
             should respond_with responses[action.intern]
           end
         end
@@ -96,8 +96,8 @@ module Boilertest
         [:show, :edit].each do |action|
           next unless responses.key?(action.intern)
           context "GET on :#{action}" do
-            prepare_setup.call action
             setup do
+              instance_exec(action, &prepare_setup)
               get action.intern, {id: @asset.to_param}.update(@extra_url_params)
             end
             should respond_with responses[action.intern]
@@ -106,7 +106,9 @@ module Boilertest
 
         if responses.key?(:create)
           context 'POST on :create' do
-            prepare_setup.call :create
+            setup do
+              instance_exec(:create, &prepare_setup)
+            end
             should_perform_action :create, model, responses do
               assert_difference "#{model.to_s.classify}.count", @count do
                 post :create, {model => self.class.params_for(model)}.update(@extra_url_params)
@@ -121,8 +123,8 @@ module Boilertest
 
         if responses.key?(:update)
           context 'PUT on :update' do
-            prepare_setup.call :update
             setup do
+              instance_exec(:update, &prepare_setup)
               @modified_values = self.class.modify_values(@asset, editable_attributes)
               put :update, {id: @asset.to_param, model => @modified_values}.update(@extra_url_params)
             end
